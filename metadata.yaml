@@ -1,5 +1,7 @@
 homepage: "https://ipgeolocation.io"
-documentation: "https://ipgeolocation.io/ip-location-api.html#documentation-overview"
+documentation: "https://ipgeolocation.io/documentation/ip-location-api.html"
 versions:
+  - sha: d15f2c04629fca5e4c27aefd5d82409112412215
+    changeNotes: Upgrade to v3.
   - sha: 5ef8c533d84f8b8c82c4159967b69d713c19ec45
     changeNotes: Initial release.
