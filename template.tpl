@@ -1,4 +1,12 @@
-﻿﻿___INFO___
+﻿___TERMS_OF_SERVICE___
+
+By creating or modifying this file you agree to Google Tag Manager's Community
+Template Gallery Developer Terms of Service available at
+https://developers.google.com/tag-manager/gallery-tos (or such other URL as
+Google may provide), as modified from time to time.
+
+
+___INFO___
 
 {
   "type": "TAG",
@@ -717,4 +725,5 @@ Created on 9/29/2025, 2:22:57 PM
 Updated for v3 API — simplified Free/Paid plan model, removed deprecated Standard/Advanced
 tiers, added includeGeoAccuracy support, fixed hostname double-call bug, improved
 error handling and test coverage.
+
 
