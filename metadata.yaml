@@ -1,6 +1,8 @@
 homepage: "https://ipgeolocation.io"
 documentation: "https://ipgeolocation.io/documentation/ip-location-api.html"
 versions:
+  - sha: 19f54ae7157d819d03f03b918c22cc31583bac10
+    changeNotes: Update the browser plugin to 3.0.3 and add Arabic to the language menu.
   - sha: 44c5378ffea865dd29e40ef790bdb793620bb7cd
     changeNotes: Update the plugin to 3.0.2, handle status-zero failures and reset settings between tags.
   - sha: 659211f4f1781ff2df9e96b77d83100a7f1531c8

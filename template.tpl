@@ -242,6 +242,10 @@ ___TEMPLATE_PARAMETERS___
           {
             "value": "pt",
             "displayValue": "Portuguese"
+          },
+          {
+            "value": "ar",
+            "displayValue": "Arabic"
           }
         ],
         "simpleValueType": true,
@@ -267,9 +271,7 @@ const copyFromWindow = require('copyFromWindow');
 const createQueue = require('createQueue');
 const log = require('logToConsole');
 
-const PLUGIN_URL = 'https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.2.js';
-
-const PLUGIN_CACHE_KEY = 'ipgeolocation_v3';
+const PLUGIN_URL = 'https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.3.js';
 
 
 const onError = function(msg) {
@@ -295,14 +297,16 @@ const onResponse = function(resp) {
 
 
 const geolocate = function() {
-  var ipGeo = copyFromWindow('_ipgeo');
+  var ipGeo = copyFromWindow('_ipgeo303');
 
   if (!ipGeo) {
-    onError('_ipgeo object not found on window after plugin load.');
+    onError('Geolocation plugin was unavailable after loading.');
     return;
   }
 
   var paid = data.subscriptionPlan === 'paid';
+  ipGeo.setIPAddress('');
+  ipGeo.setIncludeAll(false);
   ipGeo.enableSessionStorage(!!data.enableSessionStorage);
   ipGeo.setFields(data.fieldsToInclude || '');
   ipGeo.setExcludes(data.fieldsToExclude || '');
@@ -323,7 +327,7 @@ injectScript(
   PLUGIN_URL,
   geolocate,
   function() { onError('Failed to load the IP Geolocation plugin script.'); },
-  PLUGIN_CACHE_KEY
+  PLUGIN_URL
 );
 
 
@@ -425,7 +429,7 @@ ___WEB_PERMISSIONS___
                 "mapValue": [
                   {
                     "type": 1,
-                    "string": "_ipgeo"
+                    "string": "_ipgeo303"
                   },
                   {
                     "type": 8,
@@ -465,7 +469,7 @@ ___WEB_PERMISSIONS___
             "listItem": [
               {
                 "type": 1,
-                "string": "https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.2.js"
+                "string": "https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.3.js"
               }
             ]
           }
@@ -666,6 +670,8 @@ scenarios:
     runCode(mockData);
     scriptSuccessCallback();
     var settings = {};
+    mockObj.setIPAddress = function(value) { settings.ip = value; };
+    mockObj.setIncludeAll = function(value) { settings.all = value; };
     mockObj.enableSessionStorage = function(value) { settings.cache = value; };
     mockObj.setFields = function(value) { settings.fields = value; };
     mockObj.setExcludes = function(value) { settings.excludes = value; };
@@ -681,7 +687,7 @@ scenarios:
     mockData = {apiKey: 'FREE_KEY', subscriptionPlan: 'free', dataLayerName: 'customLayer', customEventName: 'freeLookup'};
     runCode(mockData);
     scriptSuccessCallback();
-    assertThat(settings).isEqualTo({cache: false, fields: '', excludes: '', hostname: false, liveHostname: false, hostnameFallback: false, userAgent: false, security: false, abuse: false, dma: false, accuracy: false, language: 'en'});
+    assertThat(settings).isEqualTo({ip: '', all: false, cache: false, fields: '', excludes: '', hostname: false, liveHostname: false, hostnameFallback: false, userAgent: false, security: false, abuse: false, dma: false, accuracy: false, language: 'en'});
     assertThat(pushedData.event).isEqualTo('freeLookup');
     assertApi('createQueue').wasCalledWith('customLayer');
     assertApi('gtmOnFailure').wasNotCalled();
@@ -689,7 +695,16 @@ scenarios:
   code: |
     mockData = {apiKey: 'TEST_API_KEY', subscriptionPlan: 'free'};
     runCode(mockData);
-    assertApi('injectScript').wasCalledWith('https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.2.js', scriptSuccessCallback, scriptFailureCallback, 'ipgeolocation_v3');
+    assertApi('injectScript').wasCalledWith('https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.3.js', scriptSuccessCallback, scriptFailureCallback, 'https://static.ipgeolocation.io/ipgeolocation-api-plugin.v3.0.3.js');
+- name: Arabic uses the Arabic language code
+  code: |
+    mockData = {apiKey: 'TEST_API_KEY', subscriptionPlan: 'paid', responseLanguage: 'ar', dataLayerName: 'dataLayer', customEventName: 'geoLocate'};
+    var chosen;
+    mockObj.setLanguage = function(value) { chosen = value; };
+    runCode(mockData);
+    scriptSuccessCallback();
+    assertThat(chosen).isEqualTo('ar');
+    assertApi('gtmOnSuccess').wasCalled();
 setup: |-
   // --- Test state ---
   let mockData;
@@ -720,6 +735,8 @@ setup: |-
   // Covers every setter exposed by window._ipgeo. Each method validates
   // it was called with the expected value so mismatches fail fast.
   mockObj = {
+    setIPAddress: function(arg) { if (arg !== '') fail('Expected visitor IP'); },
+    setIncludeAll: function(arg) { if (arg !== false) fail('Unexpected include-all setting'); },
     enableSessionStorage: function(arg) {
       if (arg !== !!mockData.enableSessionStorage) fail('enableSessionStorage: unexpected value ' + arg);
     },
@@ -765,7 +782,7 @@ setup: |-
   };
 
   mock('copyFromWindow', function(variableName) {
-    if (variableName === '_ipgeo') return mockObj;
+    if (variableName === '_ipgeo303') return mockObj;
     return undefined;
   });
 
